@@ -10,42 +10,37 @@ namespace Flim/Ast {
     }
 
     pub enum Command with Eq, ToString {
-        case Add(Register, Register, Register)
-        case Sub(Register, Register, Register)
-        case Mul(Register, Register, Register)
-        case Div(Register, Register, Register)
-        case Quo(Register, Register, Register)
-        case Rem(Register, Register, Register)
+        case Add(Arg, Arg, Arg)
+        case Sub(Arg, Arg, Arg)
+        case Mul(Arg, Arg, Arg)
+        case Div(Arg, Arg, Arg)
+        case Quo(Arg, Arg, Arg)
+        case Rem(Arg, Arg, Arg)
 
         
-        case Seq(Register, Register, Register)
-        case Sne(Register, Register, Register)
-        case Slt(Register, Register, Register)
-        case Sgt(Register, Register, Register)
-        case Sle(Register, Register, Register)
-        case Sge(Register, Register, Register)
+        case Seq(Arg, Arg, Arg)
+        case Sne(Arg, Arg, Arg)
+        case Slt(Arg, Arg, Arg)
+        case Sgt(Arg, Arg, Arg)
+        case Sle(Arg, Arg, Arg)
+        case Sge(Arg, Arg, Arg)
 
-        case Ld(Register, Register)
-        case St(Register, Register)
+        case Ld(Arg, Arg)
+        case St(Arg, Arg)
 
-        case Li(Register, Value)
+        case Li(Arg, Arg)
 
-        case Read(Register)
-        case Write(Register)
+        case Read(Arg)
+        case Write(Arg)
 
-        case Jeqz(Register, Register)
-        case J(Register)
+        case Jeqz(Arg, Arg)
+        case J(Arg)
 
         case Halt
     }
 
-    pub enum Register with Eq, ToString {
+    pub enum Arg with Eq, ToString {
         case Name(String)
-        case Num(String)
-    }
-
-    pub enum Value with Eq, ToString {
-        case Label(String)
-        case Num(String)
+        case Num(Int32)
     }
 }

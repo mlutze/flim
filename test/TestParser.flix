@@ -1,6 +1,8 @@
 namespace Flim/TestParser {
     use Flim/Ast.Line;
     use Flim/Ast.Program;
+    use Flim/Ast.Command;
+    use Flim/Ast.Arg;
     use Flim/Parser.parse;
 
     @test
@@ -40,6 +42,17 @@ namespace Flim/TestParser {
     def testLabel01(): Bool = {
         let input = "lab:";
         let expected = Ok(Program.Program(Line.Lab("lab") :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testCommand01(): Bool = {
+        let input = "add 1, 2, 3";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.Add(Arg.Num(1), Arg.Num(2), Arg.Num(3))) ::
+            Nil
+        ));
         let actual = parse(input);
         expected == actual
     }
