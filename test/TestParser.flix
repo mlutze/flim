@@ -57,4 +57,69 @@ namespace Flim/TestParser {
         expected == actual
     }
 
+    @test
+    def testCommand02(): Bool = {
+        let input = "sub a, b, c";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.Sub(Arg.Name("a"), Arg.Name("b"), Arg.Name("c"))) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testCommand03(): Bool = {
+        let input = "ld 1, 2";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.Ld(Arg.Num(1), Arg.Num(2))) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testCommand04(): Bool = {
+        let input = "st a, b";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.St(Arg.Name("a"), Arg.Name("b"))) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testCommand05(): Bool = {
+        let input = "read 1";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.Read(Arg.Num(1))) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testCommand06(): Bool = {
+        let input = "write a";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.Write(Arg.Name("a"))) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testCommand07(): Bool = {
+        let input = "halt";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.Halt) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
 }

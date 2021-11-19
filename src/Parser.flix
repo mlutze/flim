@@ -47,12 +47,12 @@ namespace Flim/Parser {
     }
 
     def command(): Parser[a, Line] = {
-        let* c = command3(); // <!> command2() <!> command1() <!> command0;
+        let* c = commandN();
         let* _ = endOfLine();
         return(Line.Cmd(c))
     }
 
-    def command3(): Parser[a, Command] = {
+    def commandN(): Parser[a, Command] = {
         command3Helper(Command.Add, "add") <!>
         command3Helper(Command.Sub, "sub") <!>
         command3Helper(Command.Mul, "mul") <!>
@@ -65,7 +65,21 @@ namespace Flim/Parser {
         command3Helper(Command.Slt, "slt") <!>
         command3Helper(Command.Sgt, "sgt") <!>
         command3Helper(Command.Sle, "sle") <!>
-        command3Helper(Command.Sge, "sge")
+        command3Helper(Command.Sge, "sge") <!>
+
+        command2Helper(Command.Ld, "ld") <!>
+        command2Helper(Command.St, "st") <!>
+
+        command2Helper(Command.Li, "li") <!>
+
+        command1Helper(Command.Read, "read") <!>
+        command1Helper(Command.Write, "write") <!>
+
+        command2Helper(Command.Jeqz, "jeqz") <!>
+        command1Helper(Command.J, "j") <!>
+
+        command0Helper(Command.Halt, "halt")
+
     }
 
     def command3Helper(cst: ((Arg, Arg, Arg)) -> Command, name: String): Parser[a, Command] = {
@@ -77,6 +91,27 @@ namespace Flim/Parser {
         let* _ = wsCommaWs();
         let* r3 = arg();
         return(cst((r1, r2, r3)))
+    }
+
+    def command2Helper(cst: ((Arg, Arg)) -> Command, name: String): Parser[a, Command] = {
+        let* _ = symbol(name);
+        let* _ = horizontalWhiteSpace();
+        let* r1 = arg();
+        let* _ = wsCommaWs();
+        let* r2 = arg();
+        return(cst((r1, r2)))
+    }
+
+    def command1Helper(cst: Arg -> Command, name: String): Parser[a, Command] = {
+        let* _ = symbol(name);
+        let* _ = horizontalWhiteSpace();
+        let* r1 = arg();
+        return(cst(r1))
+    }
+
+    def command0Helper(cmd: Command, name: String): Parser[a, Command] = {
+        let* _ = symbol(name);
+        return(cmd)
     }
 
     def wsCommaWs(): Parser[a, Unit] = {
