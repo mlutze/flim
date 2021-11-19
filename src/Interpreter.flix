@@ -9,11 +9,11 @@ namespace Flim/Interpreter {
     }
 
     type alias Slim = {
-        regNames :: Map[String, Int],
-        registers :: Vector[Int],
-        stack :: Vector[Int],
-        line :: Int,
-        code :: Vector[Line],
+        regNames :: MutMap[String, Int],
+        registers :: Array[Int],
+        stack :: MutList[Int],
+        line :: Ref[Int],
+        code :: Array[Line],
         write :: Int -> Unit & Impure,
         read :: Unit -> Option[Int] & Impure
     }
@@ -21,42 +21,45 @@ namespace Flim/Interpreter {
     pub def defaultSlim(p: Program): Slim & Impure = {
         let scanner = Flim/Utils/Io.stdinScanner();
         let Program.Program(lines) = p;
-        let code = lines |> Vector.fromList;
+        let code = lines |> List.toArray;
         {
-            regNames = Map.empty(),
-            registers = Vector.empty(),
-            stack = Vector.empty(),
-            line = 0,
+            regNames = MutMap.empty(),
+            registers = [32; 0],
+            stack = MutList.new(),
+            line = ref 0,
             code = code,
             write = println,
             read = () -> Flim/Utils/Io.readInt(scanner)
         }
     }
 
-    def currentLine(slim: Slim): Line = {
-        Vector.get(slim.line, slim.code)
+    def currentLine(slim: Slim): Line & Impure = {
+       (slim.code)[deref slim.line]
     }
 
-    pub def execute(slim: Slim): Result[Slim, Error] & Impure = {
+    pub def execute(slim: Slim): Result[Unit, Error] & Impure = {
         let l = currentLine(slim);
         match executeLine(slim, l) {
-            case Ok(s, Continue) => execute(s)
-            case Ok(s, Done) => Ok(s)
+            case Ok(Continue) => execute(slim)
+            case Ok(Done) => Ok()
             case Err(e) => Err(e)
         }
     }
 
-    def executeLine(slim: Slim, line: Line): Result[(Slim, Next), Error] & Impure = match line {
+    def executeLine(slim: Slim, line: Line): Result[Next, Error] & Impure = match line {
         case Line.Alloc(regs0) =>
-            let nextReg = Map.size(slim.regNames);
-            let regs = regs0 |> List.mapWithIndex((reg, i) -> (reg, nextReg + i)) |> List.toMap;
-            Ok({ regNames = regs, line = slim.line + 1 | slim }, Continue)
+            let nextReg = MutMap.size(slim.regNames);
+            regs0 |> List.mapWithIndex((reg, i) -> (reg, i)) |> 
+                List.foreach(match (reg, i) -> MutMap.put!(reg, i + nextReg, slim.regNames));
+            slim.line := deref slim.line + 1;
+            Ok(Continue)
 
         case Line.Blank =>
-            Ok({ line = slim.line + 1 | slim }, Continue)
+            slim.line := deref slim.line + 1;
+            Ok(Continue)
         
         case Line.Cmd(Command.Halt) =>
-            Ok(slim, Done)
+            Ok(Done)
 
         case _ => ??? as & Impure
     }
