@@ -8,6 +8,7 @@ namespace Flim/Parser {
     use FlixParsec/TokenSimple.symbol;
     use FlixParsec/TokenSimple.comma;
     use FlixParsec/TokenSimple.semi;
+    use FlixParsec/TokenSimple.colon;
     use FlixParsec/Regex.lookingAt;
 
     use Flim/Ast.{Program, Line};
@@ -23,7 +24,7 @@ namespace Flim/Parser {
     }
 
     def line(): Parser[a, Line] = {
-        alloc() <!> blank()
+        alloc() <!> label() <!> blank()
     }
 
     def blank(): Parser[a, Line] = {
@@ -37,6 +38,13 @@ namespace Flim/Parser {
         let* regs = wsCommaSep1(regName());
         let* _ = endOfLine();
         return(Line.Alloc(regs))
+    }
+
+    def label(): Parser[a, Line] = {
+        let* l = labelName();
+        let* _ = colon();
+        let* _ = endOfLine();
+        return(Line.Lab(l))
     }
 
     def wsCommaSep1(p: Parser[a, String]): Parser[a, List[String]] = {
@@ -62,6 +70,12 @@ namespace Flim/Parser {
     }
 
     def regName(): Parser[a, String] = {
+        let* start = alphas();
+        let* end = optionalWithDefault(alphanums(), "");
+        return(start + end)
+    }
+
+    def labelName(): Parser[a, String] = {
         let* start = alphas();
         let* end = optionalWithDefault(alphanums(), "");
         return(start + end)

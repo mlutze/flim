@@ -36,4 +36,12 @@ namespace Flim/TestParser {
         expected == actual
     }
 
+    @test
+    def testLabel01(): Bool = {
+        let input = "lab:";
+        let expected = Ok(Program.Program(Line.Lab("lab") :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
 }
