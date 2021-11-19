@@ -2,11 +2,12 @@ namespace Flim/Parser {
     use FlixParsec.Parser;
     use FlixParsec/Token.LanguageDef;
     use FlixParsec/Combinators.sepBy1;
-    use FlixParsec/Text.{makePattern, horizontalWhiteSpace, alphanums, alphas, newline};
-    use FlixParsec/Combinators.{sepBy, optionalWithDefault};
+    use FlixParsec/Text.{makePattern, horizontalWhiteSpace, alphanums, alphas, newline, restOfLine};
+    use FlixParsec/Combinators.{sepBy, optionalWithDefault, <!>};
     use FlixParsec/Prim.{flatMap, return, endOfInput};
     use FlixParsec/TokenSimple.symbol;
     use FlixParsec/TokenSimple.comma;
+    use FlixParsec/TokenSimple.semi;
     use FlixParsec/Regex.lookingAt;
 
     use Flim/Ast.{Program, Line};
@@ -22,13 +23,19 @@ namespace Flim/Parser {
     }
 
     def line(): Parser[a, Line] = {
-        alloc()
+        alloc() <!> blank()
+    }
+
+    def blank(): Parser[a, Line] = {
+        let* _ = endOfLine();
+        return(Line.Blank)
     }
 
     def alloc(): Parser[a, Line] = {
         let* _ = symbol("allocate-registers");
         let* _ = horizontalWhiteSpace();
         let* regs = wsCommaSep1(regName());
+        let* _ = endOfLine();
         return(Line.Alloc(regs))
     }
 
@@ -40,6 +47,18 @@ namespace Flim/Parser {
             return()
         };
         sepBy1(p, wsCommaWs)
+    }
+
+    def endOfLine(): Parser[a, Unit] = {
+        let* _ = horizontalWhiteSpace();
+        let* _ = optionalWithDefault(comment(), ());
+        return()
+    }
+
+    def comment(): Parser[a, Unit] = {
+        let* _ = semi();
+        let* _ = restOfLine(false);
+        return()
     }
 
     def regName(): Parser[a, String] = {

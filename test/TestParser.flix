@@ -20,4 +20,20 @@ namespace Flim/TestParser {
         }
     }
 
+    @test
+    def testComment01(): Bool = {
+        let input = "; this is a comment";
+        let expected = Ok(Program.Program(Line.Blank :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testComment02(): Bool = {
+        let input = "allocate-registers a, b, c ; this is a comment";
+        let expected = Ok(Program.Program(Line.Alloc("a" :: "b" :: "c" :: Nil) :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
 }

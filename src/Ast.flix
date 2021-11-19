@@ -6,6 +6,7 @@ namespace Flim/Ast {
         case Cmd(Command)
         case Lab(String)
         case Alloc(List[String])
+        case Blank
     }
 
     pub enum Command with Eq, ToString {
