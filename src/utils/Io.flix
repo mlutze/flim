@@ -1,15 +1,17 @@
 namespace Flim/Utils/Io {
-    pub def readLine(s: ##java.util.Scanner): Option[String] & Impure = {
+    pub def readLine(s: ##java.util.Scanner): Result[String, String] & Impure = {
         import java.util.Scanner.hasNextLine() as hasNextLine;
         import java.util.Scanner.nextLine() as nextLine;
         if (hasNextLine(s))
-            Some(nextLine(s))
+            Ok(nextLine(s))
         else
-            None
+            Err("EOI")
     }
 
-    pub def readInt(s: ##java.util.Scanner): Option[Int] & Impure = {
-        readLine(s) |> Option.flatMap(str -> Int32.fromString(str) |> Result.toOption)
+    pub def readInt(s: ##java.util.Scanner): Result[Int, String] & Impure = {
+        use Result.flatMap;
+        let* l = readLine(s);
+        Int32.fromString(l)
     }
 
     pub def stdinScanner(): ##java.util.Scanner & Impure = {
