@@ -22,7 +22,6 @@ namespace Flim/TestUtils {
 
     pub def mkIntegTest(file: String, input: List[Int], expected: List[Int]): Bool & Impure = {
         let contents = readToString(file);
-        println(contents);
         match parse(contents) {
             case Err(e) => bug!("parse error in ${file}: ${e}")
             case Ok(code) => mkInterpreterTest(code, input, expected)

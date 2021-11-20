@@ -133,21 +133,19 @@ namespace Flim/Interpreter {
                 incrLine(slim);
                 Ok(Continue)
             
-            case Command.Jeqz(src, addrReg) =>
+            case Command.Jeqz(src, lineReg) =>
                 let* val = getRegisterContents(slim, src);
                 if (val == 0) {
-                    let* addr = getRegisterContents(slim, addrReg);
-                    let i = (slim.stack)[addr]; // TODO handl OOB
-                    slim.line := i;
+                    let* line = getRegisterContents(slim, lineReg);
+                    slim.line := line;
                     Ok(Continue)
                 } else {
                     incrLine(slim);
                     Ok(Continue)
                 }
-            case Command.J(addrReg) =>
-                let* addr = getRegisterContents(slim, addrReg);
-                let i = (slim.stack)[addr]; // TODO handl OOB
-                slim.line := i;
+            case Command.J(lineReg) =>
+                let* line = getRegisterContents(slim, lineReg);
+                slim.line := line;
                 Ok(Continue)
 
             case Command.Halt => Ok(Done)
@@ -175,7 +173,6 @@ namespace Flim/Interpreter {
 
     def setRegisterContents(slim: Slim, reg: Arg, val: Int): Result[Unit, Error] & Impure = {
         use Result.flatMap;
-        println("setting ${reg} to ${val}");
         let* regNum = match reg {
             case Arg.Num(i) => Ok(i)
             case Arg.Name(n) => lookupRegister(slim, n)
