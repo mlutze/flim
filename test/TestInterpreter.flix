@@ -3,20 +3,7 @@ namespace Flim/TestInterpreter {
     use Flim/Interpreter.{execute, defaultSlim};
     use Flim/Interpreter.Slim;
 
-    def mkTest(code: Program, input: List[Int], expected: List[Int]): Bool & Impure = {
-        let inIter = input |> List.toIterator;
-        let out = MutList.new();
-
-        let slim = {
-            write = i -> MutList.push!(i, out),
-            read = () -> Flim/Utils/Iter.next(inIter)
-            | defaultSlim(code)
-        };
-
-        execute(slim);
-        let actual = out |> MutList.toList;
-        expected == actual
-    }
+    use Flim/TestUtils.mkInterpreterTest;
 
     @test
     def testHalt(): Bool & Impure = {
@@ -26,7 +13,7 @@ namespace Flim/TestInterpreter {
         );
         let in = Nil;
         let out = Nil;
-        mkTest(program, in, out)
+        mkInterpreterTest(program, in, out)
     }
 
     @test
@@ -39,7 +26,7 @@ namespace Flim/TestInterpreter {
         );
         let in = 42 :: Nil;
         let out = 42 :: Nil;
-        mkTest(program, in, out)
+        mkInterpreterTest(program, in, out)
     }
 
     @test
@@ -52,7 +39,7 @@ namespace Flim/TestInterpreter {
         );
         let in = Nil;
         let out = 42 :: Nil;
-        mkTest(program, in, out)
+        mkInterpreterTest(program, in, out)
     }
 
 }

@@ -5,17 +5,18 @@ namespace Flim/Parser {
     use FlixParsec/Text.{makePattern, horizontalWhiteSpace, alphanums, alphas, newline, restOfLine, digits};
     use FlixParsec/Combinators.{sepBy, optionalWithDefault, <!>};
     use FlixParsec/Prim.{flatMap, return, endOfInput, fail};
-    use FlixParsec/TokenSimple.symbol;
     use FlixParsec/TokenSimple.comma;
     use FlixParsec/TokenSimple.semi;
     use FlixParsec/TokenSimple.colon;
     use FlixParsec/Regex.lookingAt;
+    use FlixParsec/Char.string;
 
     use Flim/Ast.{Program, Line, Arg, Command};
 
     pub def parse(input: String): Result[Program, String] = {
         FlixParsec/Prim.parsesString(program(), input) as & Pure // TODO the parser lib needs to be effect-poly for lifted actions?
     }
+
     def program(): Parser[a, Program] = {
         let* lines = sepBy(line(), newline());
         let* _ = endOfInput();
@@ -23,6 +24,7 @@ namespace Flim/Parser {
     }
 
     def line(): Parser[a, Line] = {
+        let* _ = horizontalWhiteSpace();
         alloc() <!> label() <!> command() <!> blank()
     }
 
@@ -32,7 +34,7 @@ namespace Flim/Parser {
     }
 
     def alloc(): Parser[a, Line] = {
-        let* _ = symbol("allocate-registers");
+        let* _ = string("allocate-registers");
         let* _ = horizontalWhiteSpace();
         let* regs = wsCommaSep1(regName());
         let* _ = endOfLine();
@@ -83,7 +85,7 @@ namespace Flim/Parser {
     }
 
     def command3Helper(cst: ((Arg, Arg, Arg)) -> Command, name: String): Parser[a, Command] = {
-        let* _ = symbol(name);
+        let* _ = string(name);
         let* _ = horizontalWhiteSpace();
         let* r1 = arg();
         let* _ = wsCommaWs();
@@ -94,7 +96,7 @@ namespace Flim/Parser {
     }
 
     def command2Helper(cst: ((Arg, Arg)) -> Command, name: String): Parser[a, Command] = {
-        let* _ = symbol(name);
+        let* _ = string(name);
         let* _ = horizontalWhiteSpace();
         let* r1 = arg();
         let* _ = wsCommaWs();
@@ -103,14 +105,14 @@ namespace Flim/Parser {
     }
 
     def command1Helper(cst: Arg -> Command, name: String): Parser[a, Command] = {
-        let* _ = symbol(name);
+        let* _ = string(name);
         let* _ = horizontalWhiteSpace();
         let* r1 = arg();
         return(cst(r1))
     }
 
     def command0Helper(cmd: Command, name: String): Parser[a, Command] = {
-        let* _ = symbol(name);
+        let* _ = string(name);
         return(cmd)
     }
 
@@ -143,8 +145,9 @@ namespace Flim/Parser {
 
     def identifier(): Parser[a, String] = {
         let* start = alphas();
-        let* end = optionalWithDefault(alphanums(), "");
-        return(start + end)
+        let* sep = optionalWithDefault(string("-"), "");
+        let* parts = sepBy(alphanums(), string("-"));
+        return(start + sep + String.intercalate("-", parts))
     }
 
     def arg(): Parser[a, Arg] = {

@@ -14,6 +14,67 @@ namespace Flim/TestParser {
     }
 
     @test
+    def testAlloc02(): Bool = {
+        let input = "allocate-registers reg-1";
+        let expected = Ok(Program.Program(Line.Alloc("reg-1" :: Nil) :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testAlloc03(): Bool = {
+        let input = "    allocate-registers a";
+        let expected = Ok(Program.Program(Line.Alloc("a" :: Nil) :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testAlloc04(): Bool = {
+        let input = "allocate-registers a\nallocate-registers b";
+        let expected = Ok(Program.Program(
+            Line.Alloc("a" :: Nil) ::
+            Line.Alloc("b" :: Nil) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testAlloc05(): Bool = {
+        let input = "allocate-registers a\n\nallocate-registers b";
+        let expected = Ok(Program.Program(
+            Line.Alloc("a" :: Nil) ::
+            Line.Blank ::
+            Line.Alloc("b" :: Nil) ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testAlloc06(): Bool = {
+        let input = "allocate-registers a\n";
+        let expected = Ok(Program.Program(
+            Line.Alloc("a" :: Nil) ::
+            Line.Blank ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testAlloc07(): Bool = {
+        let input = "allocate-registers reg-1-2";
+        let expected = Ok(Program.Program(Line.Alloc("reg-1-2" :: Nil) :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
     def testBadAlloc01(): Bool = {
         let input = "flallocate-flegisters a, b, c";
         match parse(input) {
@@ -39,9 +100,33 @@ namespace Flim/TestParser {
     }
 
     @test
+    def testComment03(): Bool = {
+        let input = "input-2-larger:        ; an instruction label, referring to the";
+        let expected = Ok(Program.Program(Line.Lab("input-2-larger") :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testComment04(): Bool = {
+        let input = "    ; this is a comment\n";
+        let expected = Ok(Program.Program(Line.Blank :: Line.Blank :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
     def testLabel01(): Bool = {
         let input = "lab:";
         let expected = Ok(Program.Program(Line.Lab("lab") :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testLabel02(): Bool = {
+        let input = "lab-1:";
+        let expected = Ok(Program.Program(Line.Lab("lab-1") :: Nil));
         let actual = parse(input);
         expected == actual
     }
@@ -122,4 +207,25 @@ namespace Flim/TestParser {
         let actual = parse(input);
         expected == actual
     }
+
+    @test
+    def testCommand08(): Bool = {
+        let input = "halt\nlab:";
+        let expected = Ok(Program.Program(
+            Line.Cmd(Command.Halt) ::
+            Line.Lab("lab") ::
+            Nil
+        ));
+        let actual = parse(input);
+        expected == actual
+    }
+
+    @test
+    def testEmpty01(): Bool = {
+        let input = "";
+        let expected = Ok(Program.Program(Line.Blank :: Nil));
+        let actual = parse(input);
+        expected == actual
+    }
+    
 }
