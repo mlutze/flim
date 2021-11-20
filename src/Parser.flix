@@ -5,9 +5,6 @@ namespace Flim/Parser {
     use FlixParsec/Text.{makePattern, horizontalWhiteSpace, alphanums, alphas, newline, restOfLine, digits};
     use FlixParsec/Combinators.{sepBy, optionalWithDefault, <!>};
     use FlixParsec/Prim.{flatMap, return, endOfInput, fail};
-    use FlixParsec/TokenSimple.comma;
-    use FlixParsec/TokenSimple.semi;
-    use FlixParsec/TokenSimple.colon;
     use FlixParsec/Regex.lookingAt;
     use FlixParsec/Char.string;
 
@@ -43,7 +40,7 @@ namespace Flim/Parser {
 
     def label(): Parser[a, Line] = {
         let* l = labelName();
-        let* _ = colon();
+        let* _ = string(":");
         let* _ = endOfLine();
         return(Line.Lab(l))
     }
@@ -118,7 +115,7 @@ namespace Flim/Parser {
 
     def wsCommaWs(): Parser[a, Unit] = {
         let* _ = horizontalWhiteSpace();
-        let* _ = comma();
+        let* _ = string(",");
         let* _ = horizontalWhiteSpace();
         return()
     }
@@ -134,7 +131,7 @@ namespace Flim/Parser {
     }
 
     def comment(): Parser[a, Unit] = {
-        let* _ = semi();
+        let* _ = string(";");
         let* _ = restOfLine(false);
         return()
     }
