@@ -9,9 +9,16 @@ namespace Flim/TestInteg {
     /// )
 
     @test
-    pub def testWriteLarger(): Bool & Impure = mkIntegTest(
+    pub def testWriteLarger01(): Bool & Impure = mkIntegTest(
         "test/resources/write-larger.slim",
         1 :: 2 :: Nil,
+        2 :: Nil
+    )
+
+    @test
+    pub def testWriteLarger02(): Bool & Impure = mkIntegTest(
+        "test/resources/write-larger.slim",
+        2 :: 1 :: Nil,
         2 :: Nil
     )
 }
