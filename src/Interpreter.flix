@@ -77,7 +77,9 @@ namespace Flim/Interpreter {
         
         case Line.Cmd(cmd) => executeCommand(slim, cmd)
 
-        case _ => ??? as & Impure
+        case Line.Lab(_) =>
+            slim.line := deref slim.line + 1;
+            Ok(Continue)
     }
 
     def executeCommand(slim: Slim, cmd: Command): Result[Next, Error] & Impure = {
