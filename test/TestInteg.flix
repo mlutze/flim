@@ -16,6 +16,20 @@ namespace Flim/TestInteg {
     )
 
     @test
+    pub def testIterativeFactorial(): Bool & Impure = mkIntegTest(
+        "test/resources/iterative-factorial.slim",
+        6 :: Nil,
+        720 :: Nil
+    )
+
+    @test
+    pub def testRecursiveFactorial(): Bool & Impure = mkIntegTest(
+        "test/resources/recursive-factorial.slim",
+        6 :: Nil,
+        720 :: Nil
+    )
+
+    @test
     pub def testWriteLarger01(): Bool & Impure = mkIntegTest(
         "test/resources/write-larger.slim",
         1 :: 2 :: Nil,
