@@ -40,8 +40,8 @@ namespace Flim/Interpreter {
             |> List.toMap;
         {
             regNames = MutMap.empty(),
-            registers = [32; 0],
-            stack = [defaultStackSize(); 0],
+            registers = Array.new(0, 32),
+            stack = Array.new(0, defaultStackSize()),
             line = ref 0,
             code = code,
             labels = labels,
@@ -121,7 +121,6 @@ namespace Flim/Interpreter {
                 incrLine(slim);
                 Ok(Continue)
             
-            // TODO advance line for everyone
             case Command.Read(dst) =>
                 let* val = (slim.read)() |> Result.mapErr(IoError);
                 let* _ = setRegisterContents(slim, dst, val);
@@ -176,11 +175,13 @@ namespace Flim/Interpreter {
 
     def setRegisterContents(slim: Slim, reg: Arg, val: Int): Result[Unit, Error] & Impure = {
         use Result.flatMap;
+        println("setting ${reg} to ${val}");
         let* regNum = match reg {
             case Arg.Num(i) => Ok(i)
             case Arg.Name(n) => lookupRegister(slim, n)
         };
-        Ok((slim.registers)[regNum] = val)
+        (slim.registers)[regNum] = val;
+        Ok()
     }
 
     def lookupRegister(slim: Slim, reg: String): Result[Int, Error] & Impure = {
