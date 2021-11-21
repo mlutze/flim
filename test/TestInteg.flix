@@ -30,6 +30,13 @@ namespace Flim/TestInteg {
     )
 
     @test
+    pub def testTwoFactorials(): Bool & Impure = mkIntegTest(
+        "test/resources/two-factorials.slim",
+        3 :: Nil,
+        726 :: Nil
+    )
+
+    @test
     pub def testWriteLarger01(): Bool & Impure = mkIntegTest(
         "test/resources/write-larger.slim",
         1 :: 2 :: Nil,
