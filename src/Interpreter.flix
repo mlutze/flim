@@ -12,6 +12,7 @@ namespace Flim/Interpreter {
         case Done
     }
 
+    /// The Slim Machine
     pub type alias Slim = {
         regNames :: MutMap[String, Int],
         registers :: Array[Int],
@@ -23,8 +24,12 @@ namespace Flim/Interpreter {
         read :: Unit -> Result[Int, String] & Impure
     }
 
-    def defaultStackSize(): Int = 1024
+    def defaultStackSize(): Int32 = 1024
 
+    def defaultRegisters(): Int32 = 32
+
+    /// Creates a default SLIM:
+    /// Reads and writes to StdIo
     pub def defaultSlim(p: Program): Slim & Impure = {
         let scanner = Flim/Utils/Io.stdinScanner();
         let Program.Program(lines) = p;
@@ -40,7 +45,7 @@ namespace Flim/Interpreter {
             |> List.toMap;
         {
             regNames = MutMap.empty(),
-            registers = Array.new(0, 32),
+            registers = Array.new(0, defaultRegisters()),
             stack = Array.new(0, defaultStackSize()),
             line = ref 0,
             code = code,
@@ -54,6 +59,7 @@ namespace Flim/Interpreter {
        (slim.code)[deref slim.line]
     }
 
+    /// Executes the SLIM with its loaded program
     pub def execute(slim: Slim): Result[Unit, RuntimeError] & Impure = {
         let l = currentLine(slim);
         match executeLine(slim, l) {
@@ -63,6 +69,7 @@ namespace Flim/Interpreter {
         }
     }
 
+    /// Executes one line on the SLIM
     def executeLine(slim: Slim, line: Line): Result[Next, RuntimeError] & Impure = match line {
         case Line.Alloc(regs0) =>
             let nextReg = MutMap.size(slim.regNames);
@@ -82,6 +89,7 @@ namespace Flim/Interpreter {
             Ok(Continue)
     }
 
+    /// Executes one command on the SLIM
     def executeCommand(slim: Slim, cmd: Command): Result[Next, RuntimeError] & Impure = {
         use Result.flatMap;
         match cmd {
@@ -152,6 +160,7 @@ namespace Flim/Interpreter {
         }
     }
 
+    /// Helper function for the common 3-arg operations
     def command3Helper(slim: Slim, f: (Int, Int) -> (Int), dst: Arg, src1: Arg, src2: Arg): Result[Next, RuntimeError] & Impure = {
         use Result.flatMap;
         let* v1 = getRegisterContents(slim, src1);
@@ -162,6 +171,7 @@ namespace Flim/Interpreter {
         Ok(Continue)
     }
 
+    /// Gets the contents of the given register
     def getRegisterContents(slim: Slim, reg: Arg): Result[Int, RuntimeError] & Impure = {
         use Result.flatMap;
         let* regNum = match reg {
@@ -171,6 +181,7 @@ namespace Flim/Interpreter {
         Ok((slim.registers)[regNum]) // TODO handle OOB
     }
 
+    /// Sets the contents of the given register
     def setRegisterContents(slim: Slim, reg: Arg, val: Int): Result[Unit, RuntimeError] & Impure = {
         use Result.flatMap;
         let* regNum = match reg {
@@ -181,6 +192,7 @@ namespace Flim/Interpreter {
         Ok()
     }
 
+    /// Looks up the name of the given register, and returns the register number
     def lookupRegister(slim: Slim, reg: String): Result[Int, RuntimeError] & Impure = {
         match MutMap.get(reg, slim.regNames) {
             case Some(i) => Ok(i)
@@ -188,6 +200,7 @@ namespace Flim/Interpreter {
         }
     }
 
+    /// Looks up the name of the given label, and returns the line number
     def lookupLabel(slim: Slim, lab: String): Result[Int, RuntimeError] = {
         match Map.get(lab, slim.labels) {
             case Some(i) => Ok(i)
