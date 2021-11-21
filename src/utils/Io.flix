@@ -20,4 +20,10 @@ namespace Flim/Utils/Io {
         let i = in() as ##java.io.InputStream;
         newScanner(i)
     }
+
+    pub def readToString(file: String): Result[String, String] & Impure = {
+        use Result.flatMap;
+        let* lines = File.readLines(file);
+        Ok(String.intercalate(String.lineSeparator(), lines))
+    }
 }

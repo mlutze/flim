@@ -1,7 +1,7 @@
 namespace Flim/Interpreter {
     use Flim/Ast.{Program, Line, Command, Arg};
 
-    pub enum Error {
+    pub enum RuntimeError with ToString {
         case UnknownRegister(String)
         case UnknownLabel(String)
         case IoError(String)
@@ -12,7 +12,7 @@ namespace Flim/Interpreter {
         case Done
     }
 
-    type alias Slim = {
+    pub type alias Slim = {
         regNames :: MutMap[String, Int],
         registers :: Array[Int],
         stack :: Array[Int],
@@ -54,7 +54,7 @@ namespace Flim/Interpreter {
        (slim.code)[deref slim.line]
     }
 
-    pub def execute(slim: Slim): Result[Unit, Error] & Impure = {
+    pub def execute(slim: Slim): Result[Unit, RuntimeError] & Impure = {
         let l = currentLine(slim);
         match executeLine(slim, l) {
             case Ok(Continue) => execute(slim)
@@ -63,7 +63,7 @@ namespace Flim/Interpreter {
         }
     }
 
-    def executeLine(slim: Slim, line: Line): Result[Next, Error] & Impure = match line {
+    def executeLine(slim: Slim, line: Line): Result[Next, RuntimeError] & Impure = match line {
         case Line.Alloc(regs0) =>
             let nextReg = MutMap.size(slim.regNames);
             regs0 |> List.mapWithIndex((reg, i) -> (reg, i)) |> 
@@ -82,7 +82,7 @@ namespace Flim/Interpreter {
             Ok(Continue)
     }
 
-    def executeCommand(slim: Slim, cmd: Command): Result[Next, Error] & Impure = {
+    def executeCommand(slim: Slim, cmd: Command): Result[Next, RuntimeError] & Impure = {
         use Result.flatMap;
         match cmd {
             case Command.Add(dst, src1, src2) => command3Helper(slim, (x, y) -> x + y, dst, src1, src2)
@@ -152,7 +152,7 @@ namespace Flim/Interpreter {
         }
     }
 
-    def command3Helper(slim: Slim, f: (Int, Int) -> (Int), dst: Arg, src1: Arg, src2: Arg): Result[Next, Error] & Impure = {
+    def command3Helper(slim: Slim, f: (Int, Int) -> (Int), dst: Arg, src1: Arg, src2: Arg): Result[Next, RuntimeError] & Impure = {
         use Result.flatMap;
         let* v1 = getRegisterContents(slim, src1);
         let* v2 = getRegisterContents(slim, src2);
@@ -162,7 +162,7 @@ namespace Flim/Interpreter {
         Ok(Continue)
     }
 
-    def getRegisterContents(slim: Slim, reg: Arg): Result[Int, Error] & Impure = {
+    def getRegisterContents(slim: Slim, reg: Arg): Result[Int, RuntimeError] & Impure = {
         use Result.flatMap;
         let* regNum = match reg {
             case Arg.Num(i) => Ok(i)
@@ -171,7 +171,7 @@ namespace Flim/Interpreter {
         Ok((slim.registers)[regNum]) // TODO handle OOB
     }
 
-    def setRegisterContents(slim: Slim, reg: Arg, val: Int): Result[Unit, Error] & Impure = {
+    def setRegisterContents(slim: Slim, reg: Arg, val: Int): Result[Unit, RuntimeError] & Impure = {
         use Result.flatMap;
         let* regNum = match reg {
             case Arg.Num(i) => Ok(i)
@@ -181,14 +181,14 @@ namespace Flim/Interpreter {
         Ok()
     }
 
-    def lookupRegister(slim: Slim, reg: String): Result[Int, Error] & Impure = {
+    def lookupRegister(slim: Slim, reg: String): Result[Int, RuntimeError] & Impure = {
         match MutMap.get(reg, slim.regNames) {
             case Some(i) => Ok(i)
             case None => Err(UnknownRegister(reg))
         }
     }
 
-    def lookupLabel(slim: Slim, lab: String): Result[Int, Error] = {
+    def lookupLabel(slim: Slim, lab: String): Result[Int, RuntimeError] = {
         match Map.get(lab, slim.labels) {
             case Some(i) => Ok(i)
             case None => Err(UnknownLabel(lab))
