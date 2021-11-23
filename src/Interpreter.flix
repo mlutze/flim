@@ -5,6 +5,8 @@ namespace Flim/Interpreter {
         case UnknownRegister(String)
         case UnknownLabel(String)
         case IoError(String)
+        case StackOverflow
+        case StackUnderflow
     }
 
     enum Next {
@@ -109,14 +111,14 @@ namespace Flim/Interpreter {
 
             case Command.Ld(dst, addrReg) =>
                 let* addr = getRegisterContents(slim, addrReg);
-                let val = (slim.stack)[addr]; // TODO handle OOB
+                let* val = getStackContents(slim, addr);
                 let* _ = setRegisterContents(slim, dst, val);
                 incrLine(slim);
                 Ok(Continue)
             case Command.St(src, addrReg) =>
                 let* addr = getRegisterContents(slim, addrReg);
                 let* val = getRegisterContents(slim, src);
-                (slim.stack)[addr] = val; // TODO handle OOB
+                let* _ = setStackContents(slim, addr, val);
                 incrLine(slim);
                 Ok(Continue)
 
@@ -178,7 +180,11 @@ namespace Flim/Interpreter {
             case Arg.Num(i) => Ok(i)
             case Arg.Name(n) => lookupRegister(slim, n)
         };
-        Ok((slim.registers)[regNum]) // TODO handle OOB
+        if (regNum < 0 or regNum > slim.registers.length) {
+            Err(UnknownRegister("${regNum}"))
+        } else {
+            Ok((slim.registers)[regNum])
+        }
     }
 
     /// Sets the contents of the given register
@@ -188,8 +194,37 @@ namespace Flim/Interpreter {
             case Arg.Num(i) => Ok(i)
             case Arg.Name(n) => lookupRegister(slim, n)
         };
-        (slim.registers)[regNum] = val;
-        Ok()
+        if (regNum < 0 or regNum > slim.registers.length) {
+            Err(UnknownRegister("${regNum}"))
+        } else {
+            (slim.registers)[regNum] = val;
+            Ok()
+        }
+    }
+
+    /// Gets the contents of the stack at the given address
+    def getStackContents(slim: Slim, addr: Int): Result[Int, RuntimeError] & Impure = {
+        use Result.flatMap;
+        if (addr < 0) {
+            Err(StackUnderflow)
+        } else if (addr > (slim.stack.length)) {
+            Err(StackOverflow)
+        } else {
+            Ok((slim.stack)[addr])
+        }
+    }
+
+    /// Sets the contents of the stack at the given address
+    def setStackContents(slim: Slim, addr: Int, val: Int): Result[Unit, RuntimeError] & Impure = {
+        use Result.flatMap;
+        if (addr < 0) {
+            Err(StackUnderflow)
+        } else if (addr > (slim.stack.length)) {
+            Err(StackOverflow)
+        } else {
+            (slim.stack)[addr] = val;
+            Ok()
+        }
     }
 
     /// Looks up the name of the given register, and returns the register number
