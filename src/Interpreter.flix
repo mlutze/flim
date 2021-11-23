@@ -77,17 +77,17 @@ namespace Flim/Interpreter {
             let nextReg = MutMap.size(slim.regNames);
             regs0 |> List.mapWithIndex((reg, i) -> (reg, i)) |> 
                 List.foreach(match (reg, i) -> MutMap.put!(reg, i + nextReg, slim.regNames));
-            slim.line := deref slim.line + 1;
+            incrLine(slim);
             Ok(Continue)
 
         case Line.Blank =>
-            slim.line := deref slim.line + 1;
+            incrLine(slim);
             Ok(Continue)
         
         case Line.Cmd(cmd) => executeCommand(slim, cmd)
 
         case Line.Lab(_) =>
-            slim.line := deref slim.line + 1;
+            incrLine(slim);
             Ok(Continue)
     }
 
