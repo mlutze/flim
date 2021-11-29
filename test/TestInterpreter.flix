@@ -2,8 +2,10 @@ namespace Flim/TestInterpreter {
     use Flim/Ast.{Program, Line, Command, Arg};
     use Flim/Interpreter.{execute, defaultSlim};
     use Flim/Interpreter.Slim;
+    use Flim/Interpreter.RuntimeError;
 
     use Flim/TestUtils.mkInterpreterTest;
+    use Flim/TestUtils.mkInterpreterFail;
 
     @test
     def testHalt(): Bool & Impure = {
@@ -40,6 +42,14 @@ namespace Flim/TestInterpreter {
         let in = Nil;
         let out = 42 :: Nil;
         mkInterpreterTest(program, in, out)
+    }
+
+    @test
+    def testNoHalt(): Bool & Impure = {
+        let program = Program.Program(Nil);
+        let in = Nil;
+        let err = RuntimeError.OutOfProgram;
+        mkInterpreterFail(program, in, err)
     }
 
 }

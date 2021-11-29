@@ -1,12 +1,13 @@
 namespace Flim/Interpreter {
     use Flim/Ast.{Program, Line, Command, Arg};
 
-    pub enum RuntimeError with ToString {
+    pub enum RuntimeError with Eq, ToString {
         case UnknownRegister(String)
         case UnknownLabel(String)
         case IoError(String)
         case StackOverflow
         case StackUnderflow
+        case OutOfProgram
     }
 
     enum Next {
@@ -57,13 +58,19 @@ namespace Flim/Interpreter {
         }
     }
 
-    def currentLine(slim: Slim): Line & Impure = {
-       (slim.code)[deref slim.line]
+    def currentLine(slim: Slim): Result[Line, RuntimeError] & Impure = {
+        let line = deref slim.line;
+        if (line < 0 or line >= slim.code.length) {
+            Err(RuntimeError.OutOfProgram)
+        } else {
+            Ok((slim.code)[deref slim.line])
+        }
     }
 
     /// Executes the SLIM with its loaded program
     pub def execute(slim: Slim): Result[Unit, RuntimeError] & Impure = {
-        let l = currentLine(slim);
+        use Result.flatMap;
+        let* l = currentLine(slim);
         match executeLine(slim, l) {
             case Ok(Continue) => execute(slim)
             case Ok(Done) => Ok()
